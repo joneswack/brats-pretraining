@@ -1,3 +1,8 @@
+brats_data_preprocessed/*
+brats_data_raw/*
+tensorboard_logs/*
+saved_models/*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
