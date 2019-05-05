@@ -10,13 +10,13 @@ from tensorboardX import SummaryWriter
 
 class ModelTrainer():
     
-    def __init__(self, model_name, model, train_loader, test_loader, loss_fn, metric, lr=1e-3,
+    def __init__(self, model_name, model, train_loader, val_loader, loss_fn, metric, lr=1e-3,
                  epochs=10, num_batches_per_epoch=10, num_validation_batches_per_epoch=3):
         super(ModelTrainer, self).__init__()
         
         self.model = model
         self.train_loader = train_loader
-        self.test_loader = test_loader
+        self.val_loader = val_loader
         self.lr = lr
         self.epochs = epochs
         self.num_batches_per_epoch = num_batches_per_epoch
@@ -31,23 +31,23 @@ class ModelTrainer():
         self.log_dir = 'tensorboard_logs/{}_lr_{}_epochs_{}/{}'.format(
             model_name, lr, epochs, datetime.now().strftime("%Y%m%d-%H%M%S"))
         self.train_writer = SummaryWriter(self.log_dir + '/train')
-        self.test_writer = SummaryWriter(self.log_dir + '/test')
+        self.val_writer = SummaryWriter(self.log_dir + '/val')
         
     def run(self):
         t0 = time()
         
-        # first test loss before training
-        self.test_epoch(self.model, self.test_loader, 0)
+        # first val loss before training
+        self.val_epoch(self.model, self.val_loader, 0)
         
         for epoch in range(1, self.epochs + 1):
             print('\n# Epoch {} #\n'.format(epoch))
             self.train_epoch(self.model, self.train_loader, self.optimizer, epoch)
-            self.test_epoch(self.model, self.test_loader, epoch)
+            self.val_epoch(self.model, self.val_loader, epoch)
 
         time_elapsed = time() - t0
         print('\nTime elapsed: {:.2f} seconds'.format(time_elapsed))
         self.train_writer.close()
-        self.test_writer.close()
+        self.val_writer.close()
         
         return time_elapsed
 
@@ -57,8 +57,8 @@ class ModelTrainer():
         train_metric = 0
         for batch_idx in range(self.num_batches_per_epoch):
             batch = next(train_loader)
-            data = batch['data']
-            target = batch['seg']
+            data = torch.from_numpy(batch['data'])
+            target = torch.from_numpy(batch['seg'])
 
             # data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
@@ -82,7 +82,7 @@ class ModelTrainer():
         
         self.train_writer.add_scalar('metric', train_metric, iteration)
 
-        print('[Train] Avg. Loss: {:.2f}, Avg. Metric: {:.2f}%'.format(
+        print('[Train] Avg. Loss: {:.2f}, Avg. Metric: {:.2f}'.format(
             train_loss, train_metric))
 
     def val_epoch(self, model, val_loader, epoch):
@@ -93,8 +93,8 @@ class ModelTrainer():
         with torch.no_grad():
             for batch_idx in range(self.num_validation_batches_per_epoch):
                 batch = next(val_loader)
-                data = batch['data']
-                target = batch['seg']
+                data = torch.from_numpy(batch['data'])
+                target = torch.from_numpy(batch['seg'])
                 # data, target = data.to(device), target.to(device)
                 output = model(data)
                 val_loss += self.loss_fn(output, target).item()
@@ -105,8 +105,8 @@ class ModelTrainer():
         
         # iteration after processing all batches of the current epoch
         iteration = epoch * self.num_batches_per_epoch
-        self.test_writer.add_scalar('loss', val_loss, iteration)
-        self.test_writer.add_scalar('metric', val_metric, iteration)
+        self.val_writer.add_scalar('loss', val_loss, iteration)
+        self.val_writer.add_scalar('metric', val_metric, iteration)
 
-        print('[Test] Avg. Loss: {:.2f}, Avg. Metric: {:.2f}%'.format(
+        print('[Val] Avg. Loss: {:.2f}, Avg. Metric: {:.2f}'.format(
             val_loss, val_metric))

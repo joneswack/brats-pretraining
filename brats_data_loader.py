@@ -13,6 +13,14 @@ from batchgenerators.transforms.color_transforms import BrightnessMultiplicative
 from batchgenerators.transforms.noise_transforms import GaussianNoiseTransform, GaussianBlurTransform
 
 
+channel_indices = {
+    't1': 0,
+    't1c': 1,
+    't2': 2,
+    'flair': 3,
+    'seg': 4
+}
+
 def get_train_transform(patch_size):
     # we now create a list of transforms. These are not necessarily the best transforms to use for BraTS, this is just
     # to showcase some things
@@ -79,13 +87,15 @@ class BRATSDataLoader(DataLoader):
     Based on Fabian Isensee's BRATS dataloader example.
     """
     
-    def __init__(self, data, batch_size, patch_size, num_threads_in_multithreaded, seed_for_shuffle=1234,
-                 return_incomplete=False, shuffle=True, infinite=True):
+    def __init__(self, data, batch_size, patch_size, in_channels, num_threads_in_multithreaded=1,
+                 seed_for_shuffle=1234, return_incomplete=False, shuffle=True, infinite=True):
         super(BRATSDataLoader, self).__init__(data, batch_size, num_threads_in_multithreaded,
                                               seed_for_shuffle, return_incomplete, shuffle, infinite)
         
         self.patch_size = patch_size
-        self.num_modalities = 4
+        # ADDED: in_channels
+        self.num_modalities = len(in_channels) # 4
+        self.in_channels = [channel_indices[i] for i in in_channels]
         self.indices = list(range(len(data)))
 
     @staticmethod
@@ -122,7 +132,9 @@ class BRATSDataLoader(DataLoader):
             # now random crop to self.patch_size
             # crop expects the data to be (b, c, x, y, z) but patient_data is (c, x, y, z) so we need to add one
             # dummy dimension in order for it to work (@Todo, could be improved)
-            patient_data, patient_seg = crop(patient_data[:-1][None], patient_data[-1:][None],
+            
+            # ADDED: channel selector
+            patient_data, patient_seg = crop(patient_data[self.in_channels][None], patient_data[-1:][None],
                                              self.patch_size, crop_type="random")
 
             data[i] = patient_data[0]
