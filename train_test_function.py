@@ -11,8 +11,11 @@ from tensorboardX import SummaryWriter
 class ModelTrainer():
     
     def __init__(self, model_name, model, train_loader, val_loader, loss_fn, metric, lr=1e-3,
-                 epochs=10, num_batches_per_epoch=10, num_validation_batches_per_epoch=3):
+                 epochs=10, num_batches_per_epoch=10, num_validation_batches_per_epoch=3, use_gpu=False):
         super(ModelTrainer, self).__init__()
+        
+        if use_gpu:
+            model.cuda()
         
         self.model = model
         self.train_loader = train_loader
@@ -59,6 +62,9 @@ class ModelTrainer():
             batch = next(train_loader)
             data = torch.from_numpy(batch['data'])
             target = torch.from_numpy(batch['seg'])
+            
+            if self.use_gpu:
+                data, target = data.cuda(), target.cuda()
 
             # data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
@@ -95,6 +101,9 @@ class ModelTrainer():
                 batch = next(val_loader)
                 data = torch.from_numpy(batch['data'])
                 target = torch.from_numpy(batch['seg'])
+                
+                if self.use_gpu:
+                    data, target = data.cuda(), target.cuda()
                 # data, target = data.to(device), target.to(device)
                 output = model(data)
                 val_loss += self.loss_fn(output, target).item()
