@@ -1,7 +1,8 @@
 from time import time
 from batchgenerators.augmentations.crop_and_pad_augmentations import crop
 from batchgenerators.dataloading import MultiThreadedAugmenter
-from batchgenerators.examples.brats2017.config import brats_preprocessed_folder, num_threads_for_brats_example
+from config import brats_preprocessed_folder, num_threads_for_brats_example
+# from batchgenerators.examples.brats2017.config import brats_preprocessed_folder, num_threads_for_brats_example
 from batchgenerators.transforms import Compose
 from batchgenerators.utilities.data_splitting import get_split_deterministic
 from batchgenerators.utilities.file_and_folder_operations import *
@@ -80,6 +81,18 @@ def get_list_of_patients(preprocessed_data_folder):
     patients = [i[:-4] for i in npy_files]
     return patients
 
+def load_patient(patient):
+    data = np.load(patient + ".npy", mmap_mode="r")
+    metadata = load_pickle(patient + ".pkl")
+    return data, metadata
+
+#NEW
+def iterate_through_patients(patients, in_channels):
+    in_channels = [channel_indices[i] for i in in_channels]
+    
+    for p in patients:
+        yield load_patient(p)[0][in_channels][None]
+
 
 class BRATSDataLoader(DataLoader):
     
@@ -97,12 +110,6 @@ class BRATSDataLoader(DataLoader):
         self.num_modalities = len(in_channels) # 4
         self.in_channels = [channel_indices[i] for i in in_channels]
         self.indices = list(range(len(data)))
-
-    @staticmethod
-    def load_patient(patient):
-        data = np.load(patient + ".npy", mmap_mode="r")
-        metadata = load_pickle(patient + ".pkl")
-        return data, metadata
 
     def generate_train_batch(self):
         # DataLoader has its own methods for selecting what patients to use next, see its Documentation
