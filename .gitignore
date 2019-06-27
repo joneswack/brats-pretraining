@@ -1,3 +1,5 @@
+models/*
+segmentation_output/*
 brats_data_preprocessed/*
 brats_data_raw/*
 tensorboard_logs/*

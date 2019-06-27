@@ -81,17 +81,16 @@ def get_list_of_patients(preprocessed_data_folder):
     patients = [i[:-4] for i in npy_files]
     return patients
 
-def load_patient(patient):
-    data = np.load(patient + ".npy", mmap_mode="r")
-    metadata = load_pickle(patient + ".pkl")
-    return data, metadata
-
 #NEW
 def iterate_through_patients(patients, in_channels):
     in_channels = [channel_indices[i] for i in in_channels]
     
     for p in patients:
-        yield load_patient(p)[0][in_channels][None]
+        patient_data, meta_data = BRATSDataLoader.load_patient(p)
+        
+        # patient_data = BRATSDataLoader.load_patient(p)[0][in_channels][None]
+        # meta_data = BRATSDataLoader.load_patient(p)[1]
+        yield (patient_data[in_channels][None], meta_data)
 
 
 class BRATSDataLoader(DataLoader):
@@ -110,6 +109,12 @@ class BRATSDataLoader(DataLoader):
         self.num_modalities = len(in_channels) # 4
         self.in_channels = [channel_indices[i] for i in in_channels]
         self.indices = list(range(len(data)))
+        
+    @staticmethod
+    def load_patient(patient):
+        data = np.load(patient + ".npy", mmap_mode="r")
+        metadata = load_pickle(patient + ".pkl")
+        return data, metadata
 
     def generate_train_batch(self):
         # DataLoader has its own methods for selecting what patients to use next, see its Documentation

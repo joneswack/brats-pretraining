@@ -14,6 +14,7 @@ class ModelTrainer():
                  epochs=10, num_batches_per_epoch=10, num_validation_batches_per_epoch=3, use_gpu=False):
         super(ModelTrainer, self).__init__()
         
+        self.use_gpu = use_gpu
         if use_gpu:
             model.cuda()
         
@@ -119,3 +120,10 @@ class ModelTrainer():
 
         print('[Val] Avg. Loss: {:.2f}, Avg. Metric: {:.2f}'.format(
             val_loss, val_metric))
+        
+    def save_model(self, path):
+        torch.save(self.model.state_dict(), path)
+        
+    def load_model(self, path):
+        self.model.load_state_dict(torch.load(path))
+        self.model.eval()
