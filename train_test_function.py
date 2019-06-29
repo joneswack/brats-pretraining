@@ -35,7 +35,7 @@ class ModelTrainer():
         self.log_dir = 'tensorboard_logs/{}_lr_{}_epochs_{}/{}'.format(
             model_name, lr, epochs, datetime.now().strftime("%Y%m%d-%H%M%S"))
         self.train_writer = SummaryWriter(self.log_dir + '/train')
-        self.val_writer = SummaryWriter(self.log_dir + '/val')
+        self.val_writer = SummaryWriter(self.log_dir + '/test')
         
     def run(self):
         t0 = time()
