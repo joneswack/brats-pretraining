@@ -96,7 +96,7 @@ class ModelTrainer():
             
             # loss before updating the weights (i.e. at the beginning of each iteration)
             iteration = (epoch-1) * self.num_batches_per_epoch + batch_idx
-            self.train_writer.add_scalar('loss', loss / len(data), iteration)
+            self.train_writer.add_scalar('loss', loss, iteration)
             
         # for name, param in model.named_parameters():
         #     self.train_writer.add_histogram(name, param.clone().cpu().data.numpy(), iteration)

@@ -63,7 +63,7 @@ in_channels = ['t1c', 't2', 'flair']
 
 #%%
 # num_splits=5 means 1/5th is validation data!
-patients_train, patients_val = get_split_deterministic(patients, fold=0, num_splits=5, random_state=12345)
+patients_train, patients_val = get_split_deterministic(patients, fold=0, num_splits=5, random_state=args.seed)
 
 if not args.use_validation:
     patients_train = patients
@@ -148,20 +148,12 @@ def dice_multi_class(outputs, targets):
 
     dices = []
 
-    print('Dice Multi Class')
-
-    print('Zero pred. region:', (outputs == 0).sum())
-
     for region in ['edema', 'tumor_core', 'enhancing']:
         output_region = get_region(outputs, region).float()
         target_region = get_region(targets, region).float()
 
         union_fg = (output_region+target_region).sum() + smooth
         intersection_fg = (output_region*target_region).sum()
-
-        print('Intersection', intersection_fg)
-        print('Target region', target_region.sum())
-        print('Output region', output_region.sum())
 
         dice = 2 * intersection_fg / union_fg
         dices.append(dice)
@@ -238,7 +230,8 @@ model_trainer = ModelTrainer(args.name, net_3d, tr_gen, val_gen, loss_fn, metric
 # lr=0.0001, epochs=50, num_batches_per_epoch=100, num_validation_batches_per_epoch=100
 # ~4.5 hrs
 # batch_size = 24, patch_size = [24, 128, 128]
-model_trainer.run()
+# model_trainer.run()
+model_trainer.load_model('saved_models/20190707-192327_Debug_lr_0.001_epochs_1')
 
 
 #%%
@@ -306,7 +299,7 @@ def predict_patient_in_patches(patient_data, model):
     # we pad the patient data in order to fit the patches in it
     patient_data_pd = pad_nd_image(patient_data, [144, 192, 192]) # 24*6, 128+2*32, 128+2*32
     # patches.shape = (1, 1, 6, 3, 3, 1, 3, 24, 128, 128)
-    steps = (1,1,args.patch_depth,args.patch_width/4,args.patch_height/4)
+    steps = (1,1,args.patch_depth,int(args.patch_width/4),int(args.patch_height/4))
     window_shape = (1, 3, args.patch_depth, args.patch_width, args.patch_height)
     patches = skimage.util.view_as_windows(patient_data_pd[:, :3, :, :, :], window_shape=window_shape, step=steps)
     
@@ -324,7 +317,8 @@ def predict_patient_in_patches(patient_data, model):
         for j in range(patches.shape[3]):
             for k in range(patches.shape[4]):
                 data = torch.from_numpy(patches[0, 0, i, j, k])
-                data = data.cuda()
+                if args.use_gpu:
+                    data = data.cuda()
                 output = model.forward(data)
 
                 prediction[:, :,
@@ -333,7 +327,6 @@ def predict_patient_in_patches(patient_data, model):
                            k*steps[4]:k*steps[4]+window_shape[4]] += output
                     
     return prediction
-
 
 #%%
 from batchgenerators.augmentations.utils import pad_nd_image
@@ -353,7 +346,7 @@ for idx, (patient_data, meta_data) in enumerate(iterate_through_patients(target_
     np_prediction = prediction.cpu().detach().numpy()
 
     if args.multi_class:
-        np_prediction = np.argmax(np_prediction, axis=1)
+        np_prediction = np.expand_dims(np.argmax(np_prediction, axis=1), axis=1)
     else:
         np_prediction[np_prediction > 0] = 1 # tumor core
         np_prediction[np_prediction < 0] = 0
@@ -367,8 +360,18 @@ for idx, (patient_data, meta_data) in enumerate(iterate_through_patients(target_
     print(idx, dice)
     dices.append(dice)
     
+    # repair labels
+    np_cut[np_cut == 3] = 4
     output_path = '/'.join(target_patients[idx].split('/')[-2:])
-    save_segmentation_as_nifti(np_cut, meta_data, os.path.join('segmentation_output', output_path + '.nii.gz'))
+    output_path = os.path.join('segmentation_output', args.name, output_path + '.nii.gz')
+
+    if not os.path.exists(os.path.dirname(output_path)):
+        try:
+            os.makedirs(os.path.dirname(output_path))
+        except OSError as exc: # Guard against race condition
+            print('An error occured when trying to create the saving directory!')
+
+    save_segmentation_as_nifti(np_cut, meta_data, output_path)
     
 print('Mean:', np.mean(np.array(dices), axis=0))
 
