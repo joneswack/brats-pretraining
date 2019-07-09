@@ -8,6 +8,12 @@ from datetime import datetime
 
 from tensorboardX import SummaryWriter
 
+import logging
+
+def log(message):
+    print(message)
+    logging.info(message)
+
 class ModelTrainer():
     
     def __init__(self, model_name, model, train_loader, val_loader, loss_fn, metric, lr=1e-3,
@@ -37,7 +43,7 @@ class ModelTrainer():
         # otherwise tensorboard will have overlapping graphs
         self.model_name = '{}_lr_{}_epochs_{}'.format(model_name, lr, epochs)
         self.log_dir = 'tensorboard_logs/{}/{}'.format(self.model_name, datetime.now().strftime("%Y%m%d-%H%M%S"))
-        self.save_dir = 'saved_models/{1}_{0}'.format(self.model_name, datetime.now().strftime("%Y%m%d-%H%M%S"))
+        self.save_dir = 'models/{1}_{0}'.format(self.model_name, datetime.now().strftime("%Y%m%d-%H%M%S"))
         self.train_writer = SummaryWriter(self.log_dir + '/train')
         self.val_writer = SummaryWriter(self.log_dir + '/test')
         
@@ -48,12 +54,12 @@ class ModelTrainer():
         self.val_epoch(self.model, self.val_loader, 0)
         
         for epoch in range(1, self.epochs + 1):
-            print('\n# Epoch {} #\n'.format(epoch))
+            log('\n# Epoch {} #\n'.format(epoch))
             self.train_epoch(self.model, self.train_loader, self.optimizer, epoch)
             self.val_epoch(self.model, self.val_loader, epoch)
 
         time_elapsed = time() - t0
-        print('\nTime elapsed: {:.2f} seconds'.format(time_elapsed))
+        log('\nTime elapsed: {:.2f} seconds'.format(time_elapsed))
         self.train_writer.close()
         self.val_writer.close()
 
@@ -112,9 +118,9 @@ class ModelTrainer():
             else:
                 metric_label = metrics[idx]
             self.train_writer.add_scalar(metric_label, m, iteration)
-            print('[Train] Avg. {}: {:.2f}'.format(metric_label, m))
+            log('[Train] Avg. {}: {:.2f}'.format(metric_label, m))
 
-        print('[Train] Avg. Loss: {:.2f}'.format(train_loss))
+        log('[Train] Avg. Loss: {:.2f}'.format(train_loss))
 
     def val_epoch(self, model, val_loader, epoch):
         model.eval()
@@ -155,13 +161,14 @@ class ModelTrainer():
             else:
                 metric_label = metrics[idx]
             self.val_writer.add_scalar(metric_label, m, iteration)
-            print('[Val] Avg. {}: {:.2f}'.format(metric_label, m))
+            log('[Val] Avg. {}: {:.2f}'.format(metric_label, m))
         
         self.val_writer.add_scalar('loss', val_loss, iteration)
 
-        print('[Val] Avg. Loss: {:.2f}'.format(val_loss))
+        log('[Val] Avg. Loss: {:.2f}'.format(val_loss))
         
     def save_model(self, path):
+        log('Saved to: {}'.format(path))
         torch.save(self.model.state_dict(), path)
         
     def load_model(self, path):

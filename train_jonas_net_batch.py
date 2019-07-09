@@ -14,6 +14,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
+os.environ["CUDA_VISIBLE_DEVICES"]="3"
+
 #%%
 # videos.py
 import argparse
@@ -39,6 +41,11 @@ parser.add_argument('--seed', type=int, help='PyTorch Seed for Weight Initializa
 args = parser.parse_args()
 
 torch.manual_seed(args.seed)
+
+import logging
+logging.basicConfig(filename=args.name + '.log',level=logging.DEBUG)
+
+logging.info('Starting logging for {}'.format(args.name))
 
 
 #%%
@@ -70,7 +77,8 @@ if not args.use_validation:
 
 
 #%%
-# patients_test = get_list_of_patients('brats_data_preprocessed/Brats{}ValidationData'.format(str(args.brats_test_year)))
+patients_test = get_list_of_patients('brats_data_preprocessed/Brats{}ValidationData'.format(str(args.brats_test_year)))
+target_patients = patients_test
 
 
 #%%
@@ -230,15 +238,15 @@ model_trainer = ModelTrainer(args.name, net_3d, tr_gen, val_gen, loss_fn, metric
 # lr=0.0001, epochs=50, num_batches_per_epoch=100, num_validation_batches_per_epoch=100
 # ~4.5 hrs
 # batch_size = 24, patch_size = [24, 128, 128]
-# model_trainer.run()
-model_trainer.load_model('saved_models/20190707-192327_Debug_lr_0.001_epochs_1')
+model_trainer.run()
+# model_trainer.load_model('saved_models/20190707-192327_Debug_lr_0.001_epochs_1')
 
 
 #%%
 try:
     import SimpleITK as sitk
 except ImportError:
-    print("You need to have SimpleITK installed to run this example!")
+    logging.info("You need to have SimpleITK installed to run this example!")
     raise ImportError("SimpleITK not found")
 
 def save_segmentation_as_nifti(segmentation, metadata, output_file):
@@ -253,7 +261,7 @@ def save_segmentation_as_nifti(segmentation, metadata, output_file):
     sitk_image.SetOrigin(metadata['origin'])
     # remember to revert spacing back to sitk order again
     sitk_image.SetSpacing(tuple(metadata['spacing'][[2, 1, 0]]))
-    print(output_file)
+    logging.info(output_file)
     sitk.WriteImage(sitk_image, output_file)
 
 
@@ -332,12 +340,10 @@ def predict_patient_in_patches(patient_data, model):
 from batchgenerators.augmentations.utils import pad_nd_image
 from batchgenerators.augmentations.utils import center_crop_3D_image
 
-target_patients = patients_val
-
 dices = []
 
 for idx, (patient_data, meta_data) in enumerate(iterate_through_patients(target_patients, in_channels + ['seg'])): #  + ['seg']
-    print(patient_data.shape)
+    logging.info(patient_data.shape)
     
     model_trainer.model.eval()
     with torch.no_grad():
@@ -357,7 +363,7 @@ for idx, (patient_data, meta_data) in enumerate(iterate_through_patients(target_
         dice = np_dice_multi_class(np_cut, patient_data[0,3,:,:,:])
     else:
         dice = np_dice(np_cut, patient_data[0,3,:,:,:])
-    print(idx, dice)
+    logging.info("{}, {}".format(idx, dice))
     dices.append(dice)
     
     # repair labels
@@ -369,10 +375,10 @@ for idx, (patient_data, meta_data) in enumerate(iterate_through_patients(target_
         try:
             os.makedirs(os.path.dirname(output_path))
         except OSError as exc: # Guard against race condition
-            print('An error occured when trying to create the saving directory!')
+            logging.info('An error occured when trying to create the saving directory!')
 
     save_segmentation_as_nifti(np_cut, meta_data, output_path)
     
-print('Mean:', np.mean(np.array(dices), axis=0))
+logging.info('Mean: {}'.format(np.mean(np.array(dices), axis=0)))
 
 
