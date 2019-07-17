@@ -342,7 +342,7 @@ from batchgenerators.augmentations.utils import center_crop_3D_image
 
 dices = []
 
-for idx, (patient_data, meta_data) in enumerate(iterate_through_patients(target_patients, in_channels + ['seg'])): #  + ['seg']
+for idx, (patient_data, meta_data) in enumerate(iterate_through_patients(target_patients, in_channels)): #  + ['seg']
     logging.info(patient_data.shape)
     
     model_trainer.model.eval()
@@ -359,12 +359,12 @@ for idx, (patient_data, meta_data) in enumerate(iterate_through_patients(target_
     
     np_cut = center_crop_3D_image(np_prediction[0,0], patient_data.shape[2:])
     
-    if args.multi_class:
-        dice = np_dice_multi_class(np_cut, patient_data[0,3,:,:,:])
-    else:
-        dice = np_dice(np_cut, patient_data[0,3,:,:,:])
-    logging.info("{}, {}".format(idx, dice))
-    dices.append(dice)
+    # if args.multi_class:
+    #    dice = np_dice_multi_class(np_cut, patient_data[0,3,:,:,:])
+    # else:
+    #    dice = np_dice(np_cut, patient_data[0,3,:,:,:])
+    # logging.info("{}, {}".format(idx, dice))
+    # dices.append(dice)
     
     # repair labels
     np_cut[np_cut == 3] = 4
@@ -379,6 +379,6 @@ for idx, (patient_data, meta_data) in enumerate(iterate_through_patients(target_
 
     save_segmentation_as_nifti(np_cut, meta_data, output_path)
     
-logging.info('Mean: {}'.format(np.mean(np.array(dices), axis=0)))
+# logging.info('Mean: {}'.format(np.mean(np.array(dices), axis=0)))
 
 
