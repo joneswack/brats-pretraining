@@ -1,0 +1,20 @@
+/cbica/home/IPP/BraTS_2018/bin/calculateSubjectStatistics.py:95: RuntimeWarning: invalid value encountered in double_scalars
+  Jacc = 1.0 * TP / ( TP + FP + FN )
+/cbica/home/IPP/BraTS_2018/bin/calculateSubjectStatistics.py:96: RuntimeWarning: invalid value encountered in double_scalars
+  Dice = 2.0 * TP / ( 2.0 * TP + FP + FN )
+/cbica/home/IPP/BraTS_2018/bin/calculateSubjectStatistics.py:99: RuntimeWarning: invalid value encountered in double_scalars
+  Sens = 1.0 * TP / ( TP + FN )
+/cbica/home/IPP/BraTS_2018/bin/calculateSubjectStatistics.py:99: RuntimeWarning: invalid value encountered in double_scalars
+  Sens = 1.0 * TP / ( TP + FN )
+/cbica/home/IPP/BraTS_2018/bin/calculateSubjectStatistics.py:95: RuntimeWarning: invalid value encountered in double_scalars
+  Jacc = 1.0 * TP / ( TP + FP + FN )
+/cbica/home/IPP/BraTS_2018/bin/calculateSubjectStatistics.py:96: RuntimeWarning: invalid value encountered in double_scalars
+  Dice = 2.0 * TP / ( 2.0 * TP + FP + FN )
+/cbica/home/IPP/BraTS_2018/bin/calculateSubjectStatistics.py:99: RuntimeWarning: invalid value encountered in double_scalars
+  Sens = 1.0 * TP / ( TP + FN )
+/cbica/home/IPP/BraTS_2018/bin/calculateSubjectStatistics.py:95: RuntimeWarning: invalid value encountered in double_scalars
+  Jacc = 1.0 * TP / ( TP + FP + FN )
+/cbica/home/IPP/BraTS_2018/bin/calculateSubjectStatistics.py:96: RuntimeWarning: invalid value encountered in double_scalars
+  Dice = 2.0 * TP / ( 2.0 * TP + FP + FN )
+/cbica/home/IPP/BraTS_2018/bin/calculateSubjectStatistics.py:99: RuntimeWarning: invalid value encountered in double_scalars
+  Sens = 1.0 * TP / ( TP + FN )
