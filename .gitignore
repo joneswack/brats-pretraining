@@ -4,6 +4,15 @@ brats_data_preprocessed/*
 brats_data_raw/*
 tensorboard_logs/*
 saved_models/*
+results-2d-no-pretraining/*
+Brats17-2D-Results/*
+Brats17-3D-Results/*
+
+2d-no-pretrain.csv
+2d-pretrain.csv
+3d-no-pretrain.csv
+3d-pretrain.csv
+results_ucl_tig.csv
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
