@@ -1,3 +1,4 @@
+.vscode/*
 models/*
 segmentation_output/*
 brats_data_preprocessed/*

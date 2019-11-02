@@ -19,6 +19,8 @@ This is the repository containing the code to reproduce the experiments in ``Tra
 - segmentation_output: The output segmentations produced by the trained model in NIFTI format. These can be directly uploaded to the BraTS evaluation server.
 - tensorboard_logs: Tensorboard logfiles that contain the dice scores/losses over time.
 - Read-Logs.ipynb: Notebook to visualize the tensorboard logs
+- Dice-Plots.ipynb: Notebook to visualize the dice box plots
+- Seg-Graphic.ipynb: Notebook to visualize the example patient segmentation
 - brats_data_loader.py: Wrapper class for the BraTS dataloader used to train the model from the preprocessed files.
 - jonas_net.py: Contains the AlbuNet3D architecture using a ResNet34 encoder.
 - tb_log_reader.py: Wrapper class to read tensorboard logs.
