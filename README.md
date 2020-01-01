@@ -1,6 +1,6 @@
 # Transfer Learning for Brain Tumor Segmentation
 
-This is the repository containing the code to reproduce the experiments in ``Transfer Learning for Brain Tumor Segmentation`` (arXiv: ...).
+This is the repository containing the code to reproduce the experiments in ``Transfer Learning for Brain Tumor Segmentation`` (arXiv: http://arxiv.org/abs/1912.12452).
 
 ## Requirements to run the code:
 - BraTS '17/'18 Training Data and BraTS '18 Validation Data
